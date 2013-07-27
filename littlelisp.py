@@ -6,6 +6,13 @@ import pprint
 indent = '    '
 
 def tokenize(code):
+    """
+    >>> tokenize('((x))')
+    ['(', '(', 'x', ')', ')']
+
+    >>> tokenize('((lambda (x) x) "Lisp")')
+    ['(', '(', 'lambda', '(', 'x', ')', 'x', ')', '"Lisp"', ')']
+    """
     code = code.replace("(", " ( ")
     code = code.replace(")", " ) ")
     code = code.strip()
@@ -41,6 +48,13 @@ def categorize(code):
         return Atom(types.IDENTIFIER, code)
 
 def parenthesize(tokens, _list=None, recur=0):
+    """
+    >>> parenthesize(['(', '(', 'lambda', '(', 'x', ')', 'x', ')', '"Lisp"', ')'])
+    [[Atom(type='identifier', value='lambda'), [Atom(type='identifier', value='x')], Atom(type='identifier', value='x')], Atom(type='literal', value='Lisp')]
+    
+    >>> parenthesize(['(', '(', 'x', ')', ')'])
+    [[Atom(type='identifier', value='x')]]
+    """
     #print indent*recur +"parenthesize({0}, {1})".format(tokens, _list)
     
     if _list == None:
@@ -63,7 +77,12 @@ def parenthesize(tokens, _list=None, recur=0):
             _list += [categorize(token)]
             return parenthesize(tokens, _list, recur+1)
 
-
+def parse(code):
+    """
+    >>> parse('((lambda (x) x) "Lisp")')
+    [[Atom(type='identifier', value='lambda'), [Atom(type='identifier', value='x')], Atom(type='identifier', value='x')], Atom(type='literal', value='Lisp')]
+    """
+    return parenthesize(tokenize(code))
 code = '((lambda (x) x) "Lisp")'
 
 if __name__ == "__main__":
@@ -72,10 +91,4 @@ if __name__ == "__main__":
 
     import sys
 
-    tokens = tokenize(''.join(sys.argv[1:]))
-    pprint.pprint(tokens)
-
-    print "#"*10
-
-    parentheses = parenthesize(tokens)
-    pprint.pprint(parentheses)
+    pprint.pprint(parse(''.join(sys.argv[1:])))
